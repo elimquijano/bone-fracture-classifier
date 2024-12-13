@@ -1,85 +1,118 @@
-# Bone Fracture Classifier API
+# Fracture Detection and Pose Estimation with Flask and TensorFlow
 
-This is a Flask-based API for classifying bone fractures using a pre-trained TensorFlow model. The API accepts image uploads and returns predictions indicating whether the image shows a fracture or a fissure.
+This project is a Flask application that uses TensorFlow models to perform fracture detection and pose estimation. The application uses WebSockets for real-time communication between the client and the server.
 
 ## Features
 
-- **Image Upload**: Accepts image files via POST requests.
-- **Prediction**: Uses a pre-trained TensorFlow model to classify the image.
-- **Confidence Threshold**: Returns detailed predictions if the confidence level exceeds a predefined threshold.
+- **Fracture Detection**: Uses a pre-trained TensorFlow model to classify images as either "fisura" (crack) or "fractura" (fracture).
+- **Pose Estimation**: Uses a TensorFlow Lite model to detect keypoints in images, providing coordinates and scores for each keypoint.
+
+## Requirements
+
+To run this project, you need to install the following Python packages:
+
+- Flask
+- Flask-SocketIO
+- TensorFlow
+- Keras
+- Pillow
+- numpy
+- base64
+- io
+
+You can install these packages using pip:
+
+```bash
+pip install Flask Flask-SocketIO tensorflow keras Pillow numpy base64 io
+```
 
 ## Setup
 
-### Prerequisites
+1. **Clone the repository**:
 
-- Python 3.x
-- Flask
-- TensorFlow
-- Pillow
-- Flask-CORS
-
-### Installation
-
-1. Clone the repository:
-    ```sh
-    git clone https://github.com/yourusername/bone-fracture-classifier.git
-    cd bone-fracture-classifier
+    ```bash
+    git clone https://github.com/yourusername/fracture-detection-pose-estimation.git
+    cd fracture-detection-pose-estimation
     ```
 
-2. Install the required packages:
-    ```sh
+2. **Install the required packages**:
+
+    ```bash
     pip install -r requirements.txt
     ```
 
-3. Place your pre-trained model (`bone_fracture_classifier.h5`) in the root directory of the project.
+3. **Place the model files**:
 
-### Running the API
+    - Ensure that the `bone_fracture_classifier.h5` model file is in the root directory of the project.
+    - Ensure that the `singlepose.tflite` model file is in the root directory of the project.
 
-Start the Flask application:
-```sh
+## Running the Application
+
+To start the Flask application, run the following command:
+
+```bash
 python app.py
 ```
 
-The API will be available at `http://0.0.0.0:5010`.
+The application will be accessible at `http://0.0.0.0:8090`.
 
-## API Endpoints
+## Endpoints
 
-### `POST /predict`
+### WebSocket Endpoints
 
-- **Description**: Upload an image to get a prediction.
-- **Request**:
-  - **Method**: `POST`
-  - **URL**: `/predict`
-  - **Body**: Form data with a key `image` containing the image file.
-- **Response**:
-  - **Success**:
-    ```json
-    {
-        "success": 1,
-        "predictedClass": "fractura",
-        "confidence": 99.5,
-        "allProbabilities": [
-            {"class": "fisura", "probability": 0.5},
-            {"class": "fractura", "probability": 99.5}
-        ]
-    }
-    ```
-  - **Failure**:
-    ```json
-    {
-        "success": 0,
-        "message": "La imagen no corresponde a ninguna de las clases conocidas (fisura o fractura).",
-        "confidence": 45.0,
-        "allProbabilities": [
-            {"class": "fisura", "probability": 45.0},
-            {"class": "fractura", "probability": 55.0}
-        ]
-    }
-    ```
+- **`/detection`**: Handles pose detection requests. Expects a JSON object with an `image` field containing a base64-encoded image.
+- **`/predict`**: Handles fracture detection requests. Expects a JSON object with an `image` field containing a base64-encoded image.
 
-## Model
+## Example Usage
 
-The model used is a pre-trained TensorFlow model (`bone_fracture_classifier.h5`). Ensure that the model file is placed in the root directory of the project.
+### Fracture Detection
+
+Send a WebSocket message to the `/predict` endpoint with the following JSON structure:
+
+```json
+{
+    "image": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD..."
+}
+```
+
+The server will respond with a JSON object containing the prediction results:
+
+```json
+{
+    "type": "predict",
+    "success": 1,
+    "predictedClass": "fractura",
+    "confidence": 99.5,
+    "allProbabilities": [
+        {"class": "fisura", "probability": 0.5},
+        {"class": "fractura", "probability": 99.5}
+    ]
+}
+```
+
+### Pose Estimation
+
+Send a WebSocket message to the `/detection` endpoint with the following JSON structure:
+
+```json
+{
+    "image": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD..."
+}
+```
+
+The server will respond with a JSON object containing the keypoints:
+
+```json
+{
+    "type": "detection",
+    "success": 1,
+    "keypoints": [
+        {"name": "nose", "y": 123.45, "x": 67.89, "score": 0.98},
+        {"name": "left_eye", "y": 120.12, "x": 70.34, "score": 0.97},
+        ...
+    ]
+}
+```
 
 ## Contributing
 
@@ -87,4 +120,8 @@ Contributions are welcome! Please open an issue or submit a pull request.
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- Thanks to the TensorFlow and Flask communities for their excellent documentation and support.
